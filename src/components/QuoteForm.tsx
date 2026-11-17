@@ -1,6 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+// The instant quote, in the kit's field markup (references/system.md, Forms). Nothing is sent yet: online booking
+// and payment come in a later update, so this is a price calculator, not a form, and it has no submit button.
+// It opens on a sample trip (an airport pickup three days ahead at 10:00) so the price shows at once.
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { CURRENCIES, RULES, calculateQuote, hoursUntilSgt, type TripType } from "@/lib/pricing";
 import { AIRPORT_TERMINALS, POPULAR_PLACES } from "@/lib/places";
 
@@ -11,16 +14,20 @@ const TRIP_TYPES: { id: TripType; label: string }[] = [
   { id: "hourly", label: "Hourly charter" },
 ];
 
-const inputCls =
-  "w-full rounded-lg border border-black/15 bg-white px-3 py-2.5 text-[15px] outline-none focus:border-brand focus:ring-2 focus:ring-brand/20";
-const labelCls = "mb-1 block text-sm font-medium text-black/70";
-
 function money(sgd: number, cur: string) {
   const c = CURRENCIES[cur];
   return `${c.label}${(sgd * c.perSgd).toLocaleString("en-SG", { maximumFractionDigits: 0 })}`;
 }
 
-export default function QuoteForm() {
+// A date a few days ahead, as YYYY-MM-DD in Singapore time.
+function sgtDateInDays(days: number) {
+  const d = new Date(Date.now() + days * 86_400_000 + 8 * 3_600_000);
+  return d.toISOString().slice(0, 10);
+}
+
+// Renders the split's two halves (the fields under the section's heading, then the price card) into the
+// section's .wrap, which is the grid: on a tablet or phone each half takes a screen of its own.
+export default function QuoteForm({ children }: { children: ReactNode }) {
   const [tripType, setTripType] = useState<TripType>("airport-arrival");
   const [pickup, setPickup] = useState(AIRPORT_TERMINALS[0]);
   const [dropoff, setDropoff] = useState("");
@@ -31,10 +38,20 @@ export default function QuoteForm() {
   const [hours, setHours] = useState(RULES.minCharterHours);
   const [flight, setFlight] = useState("");
   const [currency, setCurrency] = useState("SGD");
-  const [submitted, setSubmitted] = useState(false);
+
+  // Set after hydration, so the server and the browser render the same first HTML.
+  useEffect(() => {
+    // a timer, not requestAnimationFrame, which never fires in a tab opened in the background
+    const id = setTimeout(() => {
+      setDate((d) => d || sgtDateInDays(3));
+      setTime((t) => t || "10:00");
+    }, 0);
+    return () => clearTimeout(id);
+  }, []);
 
   const isArrival = tripType === "airport-arrival";
   const isDeparture = tripType === "airport-departure";
+  const isHourly = tripType === "hourly";
 
   function chooseTrip(t: TripType) {
     setTripType(t);
@@ -48,59 +65,29 @@ export default function QuoteForm() {
       if (AIRPORT_TERMINALS.includes(pickup)) setPickup("");
       if (AIRPORT_TERMINALS.includes(dropoff)) setDropoff("");
     }
-    setSubmitted(false);
   }
-
-  const errors = useMemo(() => {
-    const e: Record<string, string> = {};
-    if (!pickup.trim()) e.pickup = "Enter a pickup point";
-    if (tripType !== "hourly" && !dropoff.trim()) e.dropoff = "Enter a drop-off point";
-    if (!date) e.date = "Choose a date";
-    if (!time) e.time = "Choose a time";
-    if (date && time && hoursUntilSgt(date, time) < RULES.minHoursInAdvance)
-      e.time = `Book at least ${RULES.minHoursInAdvance} hours ahead`;
-    if (isArrival && !/^[A-Za-z0-9]{2}\s?\d{1,4}[A-Za-z]?$/.test(flight.trim()))
-      e.flight = "Enter your flight number, like SQ 231";
-    if (passengers < 1) e.passengers = "At least 1 passenger";
-    return e;
-  }, [pickup, dropoff, date, time, flight, passengers, tripType, isArrival]);
 
   const quote = useMemo(
     () => (date && time ? calculateQuote({ tripType, date, time, passengers, luggage, hours }) : null),
     [tripType, date, time, passengers, luggage, hours],
   );
-
-  const showErr = (k: string) =>
-    submitted && errors[k] ? <p className="mt-1 text-[13px] text-red-700">{errors[k]}</p> : null;
+  const tooSoon = Boolean(date && time && hoursUntilSgt(date, time) < RULES.minHoursInAdvance);
 
   const placeList = isArrival || isDeparture ? POPULAR_PLACES : [...AIRPORT_TERMINALS, ...POPULAR_PLACES];
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-      <form
-        className="rounded-2xl border border-black/10 bg-white p-5 sm:p-6"
-        onSubmit={(e) => {
-          e.preventDefault();
-          setSubmitted(true);
-        }}
-        noValidate
-      >
-        <div className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-4" role="tablist" aria-label="Trip type">
+    <>
+      <div className="quote__form span-6" role="group" aria-label="Trip details">
+        {children}
+        <fieldset className="trip">
+          <legend className="sr-only">Trip</legend>
           {TRIP_TYPES.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={tripType === t.id}
-              onClick={() => chooseTrip(t.id)}
-              className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
-                tripType === t.id ? "bg-brand text-white" : "bg-black/5 text-black/70 hover:bg-black/10"
-              }`}
-            >
-              {t.label}
-            </button>
+            <label key={t.id} className="trip__opt">
+              <input type="radio" name="trip" value={t.id} checked={tripType === t.id} onChange={() => chooseTrip(t.id)} />
+              <span>{t.label}</span>
+            </label>
           ))}
-        </div>
+        </fieldset>
 
         <datalist id="places">
           {placeList.map((p) => (
@@ -108,202 +95,157 @@ export default function QuoteForm() {
           ))}
         </datalist>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className={tripType === "hourly" ? "sm:col-span-2" : ""}>
-            <label className={labelCls} htmlFor="pickup">
-              Pickup
-            </label>
+        <div className="form">
+          <div className={`field${isHourly ? " field--full" : ""}`}>
+            <label htmlFor="q-pickup">Pickup</label>
             {isArrival ? (
-              <select id="pickup" className={inputCls} value={pickup} onChange={(e) => setPickup(e.target.value)}>
+              <select id="q-pickup" value={pickup} onChange={(e) => setPickup(e.target.value)}>
                 {AIRPORT_TERMINALS.map((t) => (
                   <option key={t}>{t}</option>
                 ))}
               </select>
             ) : (
-              <input
-                id="pickup"
-                list="places"
-                className={inputCls}
-                placeholder="Hotel name, address or attraction"
-                value={pickup}
-                onChange={(e) => setPickup(e.target.value)}
-              />
+              <input id="q-pickup" list="places" autoComplete="off" value={pickup} onChange={(e) => setPickup(e.target.value)} />
             )}
-            {showErr("pickup")}
           </div>
 
-          {tripType !== "hourly" && (
-            <div>
-              <label className={labelCls} htmlFor="dropoff">
-                Drop-off
-              </label>
+          {!isHourly && (
+            <div className="field">
+              <label htmlFor="q-dropoff">Drop-off</label>
               {isDeparture ? (
-                <select id="dropoff" className={inputCls} value={dropoff} onChange={(e) => setDropoff(e.target.value)}>
+                <select id="q-dropoff" value={dropoff} onChange={(e) => setDropoff(e.target.value)}>
                   {AIRPORT_TERMINALS.map((t) => (
                     <option key={t}>{t}</option>
                   ))}
                 </select>
               ) : (
-                <input
-                  id="dropoff"
-                  list="places"
-                  className={inputCls}
-                  placeholder="Hotel name, address or attraction"
-                  value={dropoff}
-                  onChange={(e) => setDropoff(e.target.value)}
-                />
+                <input id="q-dropoff" list="places" autoComplete="off" value={dropoff} onChange={(e) => setDropoff(e.target.value)} />
               )}
-              {showErr("dropoff")}
             </div>
           )}
 
-          <div>
-            <label className={labelCls} htmlFor="date">
-              Date
-            </label>
-            <input id="date" type="date" className={inputCls} value={date} onChange={(e) => setDate(e.target.value)} />
-            {showErr("date")}
+          <div className="field">
+            <label htmlFor="q-date">Date</label>
+            <input id="q-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
-          <div>
-            <label className={labelCls} htmlFor="time">
-              {isArrival ? "Flight lands at" : "Pickup time"} <span className="font-normal text-black/50">(Singapore time)</span>
-            </label>
-            <input id="time" type="time" className={inputCls} value={time} onChange={(e) => setTime(e.target.value)} />
-            {showErr("time")}
+          <div className="field">
+            <label htmlFor="q-time">{isArrival ? "Flight lands, Singapore time" : "Pickup, Singapore time"}</label>
+            <input
+              id="q-time"
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              aria-invalid={tooSoon || undefined}
+              aria-describedby={tooSoon ? "q-time-err" : undefined}
+            />
+            {tooSoon && (
+              <p className="field__error" id="q-time-err">
+                Choose a time at least {RULES.minHoursInAdvance} hours from now
+              </p>
+            )}
           </div>
 
           {isArrival && (
-            <div className="sm:col-span-2">
-              <label className={labelCls} htmlFor="flight">
-                Flight number
-              </label>
-              <input
-                id="flight"
-                className={inputCls}
-                placeholder="SQ 231"
-                value={flight}
-                onChange={(e) => setFlight(e.target.value.toUpperCase())}
-              />
-              <p className="mt-1 text-[13px] text-black/50">We track your flight and adjust pickup if it&apos;s delayed.</p>
-              {showErr("flight")}
+            <div className="field field--full">
+              <label htmlFor="q-flight">Flight number, if you have it</label>
+              <input id="q-flight" autoComplete="off" value={flight} onChange={(e) => setFlight(e.target.value.toUpperCase())} />
             </div>
           )}
 
-          <div>
-            <label className={labelCls} htmlFor="pax">
-              Passengers
-            </label>
+          <div className="field">
+            <label htmlFor="q-passengers">Passengers</label>
             <input
-              id="pax"
+              id="q-passengers"
               type="number"
+              inputMode="numeric"
               min={1}
               max={200}
-              className={inputCls}
               value={passengers}
               onChange={(e) => setPassengers(Number(e.target.value))}
             />
-            {showErr("passengers")}
           </div>
-          <div>
-            <label className={labelCls} htmlFor="bags">
-              Large suitcases
-            </label>
+          <div className="field">
+            <label htmlFor="q-bags">Large suitcases</label>
             <input
-              id="bags"
+              id="q-bags"
               type="number"
+              inputMode="numeric"
               min={0}
               max={200}
-              className={inputCls}
               value={luggage}
               onChange={(e) => setLuggage(Number(e.target.value))}
             />
           </div>
 
-          {tripType === "hourly" && (
-            <div>
-              <label className={labelCls} htmlFor="hours">
-                Hours needed <span className="font-normal text-black/50">(min {RULES.minCharterHours})</span>
-              </label>
+          {isHourly && (
+            <div className="field">
+              <label htmlFor="q-hours">Hours, {RULES.minCharterHours} at least</label>
               <input
-                id="hours"
+                id="q-hours"
                 type="number"
+                inputMode="numeric"
                 min={RULES.minCharterHours}
                 max={24}
-                className={inputCls}
                 value={hours}
                 onChange={(e) => setHours(Number(e.target.value))}
               />
             </div>
           )}
         </div>
+      </div>
 
-        <button
-          type="submit"
-          className="mt-6 w-full rounded-lg bg-brand py-3 text-[15px] font-medium text-white transition hover:bg-brand-dark"
-        >
-          Get my quote
-        </button>
-      </form>
-
-      <aside className="rounded-2xl border border-black/10 bg-white p-5 sm:p-6" aria-live="polite">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Your quote</h2>
-          <select
-            aria-label="Display currency"
-            className="rounded-md border border-black/15 bg-white px-2 py-1 text-sm"
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value)}
-          >
-            {Object.keys(CURRENCIES).map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
+      <aside className="quote__card span-6 start-7" aria-live="polite" aria-labelledby="quote-card-h">
+        <div className="quote__head">
+          <h3 id="quote-card-h" className="t-card">
+            Your quote
+          </h3>
+          <div className="field quote__cur">
+            <label htmlFor="q-currency">Currency</label>
+            <select id="q-currency" value={currency} onChange={(e) => setCurrency(e.target.value)}>
+              {Object.keys(CURRENCIES).map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {!quote ? (
-          <p className="text-[15px] text-black/60">Pick a date and time to see your price instantly.</p>
+          <p className="muted">Choose a date and time to see the price.</p>
         ) : !quote.ok ? (
-          <p className="text-[15px] text-black/70">{quote.reason}</p>
+          <p>{quote.reason}</p>
         ) : (
-          <div>
-            <p className="mb-3 inline-block rounded-md bg-brand-light px-2.5 py-1 text-sm font-medium text-brand-dark">
-              Recommended: {quote.bus.name} · up to {quote.bus.maxLuggage} suitcases
+          <>
+            <p className="quote__bus">
+              {quote.bus.name}, up to {quote.bus.maxLuggage} large suitcases
             </p>
-            <ul className="space-y-2 border-b border-black/10 pb-3 text-[15px]">
+            <ul className="rows">
               {quote.lines.map((l) => (
-                <li key={l.label} className="flex justify-between gap-4">
-                  <span className="text-black/70">{l.label}</span>
-                  <span>{money(l.amount, currency)}</span>
+                <li key={l.label}>
+                  <span>{l.label}</span>
+                  <span className="rows__value">{money(l.amount, currency)}</span>
                 </li>
               ))}
             </ul>
-            <div className="mt-3 flex items-baseline justify-between">
-              <span className="font-medium">Total</span>
-              <span className="text-2xl font-semibold">{money(quote.total, currency)}</span>
-            </div>
-            {currency !== "SGD" && (
-              <p className="mt-1 text-right text-[13px] text-black/50">
-                Approximate. You&apos;ll be charged S${quote.total.toLocaleString("en-SG")}.
-              </p>
-            )}
-            <p className="mt-3 text-sm text-black/60">
-              Pay {RULES.depositPct}% ({money(quote.deposit, currency)}) to confirm. Free cancellation up to{" "}
-              {RULES.freeCancellationHours} hours before pickup.
+            <p className="quote__total">
+              <span>Total</span>
+              <span className="t-stat">{money(quote.total, currency)}</span>
             </p>
-
-            {submitted && Object.keys(errors).length === 0 ? (
-              <div className="mt-5 rounded-lg bg-brand-light p-3 text-sm text-brand-dark">
-                Online booking and payment are coming in the next update. Your quote is ready.
-              </div>
-            ) : submitted ? (
-              <p className="mt-5 text-sm text-red-700">Fix the highlighted fields to continue.</p>
-            ) : null}
-          </div>
+            {currency !== "SGD" && (
+              <p className="t-small muted">A guide only. We charge S${quote.total.toLocaleString("en-SG")}.</p>
+            )}
+            <p>
+              A {RULES.depositPct}% deposit of {money(quote.deposit, currency)} confirms it. Free cancellation up to{" "}
+              {RULES.freeCancellationHours} hours before pickup. Online booking and payment come in the next update.
+            </p>
+            <p>
+              <a className="link" href="#fleet">
+                Compare bus sizes
+              </a>
+            </p>
+          </>
         )}
-        <p className="mt-6 border-t border-black/10 pt-4 text-[13px] text-black/45">
-          Prices shown are sample prices while the site is being set up.
-        </p>
+        <p className="t-small muted">Prices are not final while the site is being set up.</p>
       </aside>
-    </div>
+    </>
   );
 }

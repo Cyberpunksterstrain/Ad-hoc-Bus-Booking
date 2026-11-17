@@ -1,0 +1,103 @@
+/* The palette and type exactly as start.mjs printed them (the client's own colours, pairing red-hat). */
+:root {
+  --p-bg: #f7f6f2; --p-surface: #ebeae6; --p-ink: #1c1c1a; --p-muted: #666663;
+  --p-accent: #0f6e56; --p-accent-ink: #f7f6f2; --p-action: #0f6e56; --p-action-ink: #f7f6f2;
+  --p-inv-bg: #1c1c1a; --p-inv-surface: #292826; --p-inv-ink: #f7f6f2; --p-inv-muted: #9c9b98;
+  --p-inv-accent: #f7f6f2; --p-inv-accent-ink: #1c1c1a; --p-inv-action: #f7f6f2; --p-inv-action-ink: #1c1c1a;
+  --font-display: "Red Hat Display", system-ui, sans-serif;
+  --font-text: "Red Hat Text", system-ui, sans-serif;
+  --display-weight: 400;
+  --display-tracking: -0.025em;
+  --display-tracking-xl: -0.035em;
+}
+
+/* Page CSS: only what sits inside a visual or the quote tool, which the kit has no recipe for. */
+
+/* the film hero's words on the page's own ground, so the hero keeps the page's one button pair */
+.hero--film .hero__over > :first-child {
+  background: var(--p-bg); color: var(--p-ink);
+  --bg: var(--p-bg); --ink: var(--p-ink); --muted: var(--p-muted); --action: var(--p-action); --action-ink: var(--p-action-ink);
+  --line: color-mix(in oklab, var(--p-ink) 11%, transparent); --line-strong: color-mix(in oklab, var(--p-ink) 24%, transparent);
+}
+.hero--film .hero__over .hero__lead { color: var(--p-ink); }
+/* below 1024 the kit stretches the box across the frame; keep it to its words on a tablet */
+@media (min-width: 640px) and (max-width: 1023px) { .hero--film .hero__over > :first-child { justify-self: start; max-width: 560px; } }
+
+/* the quote: the trip choice as one row of toggles, the fields open, the price on a surface card */
+.trip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-2); margin: 0 0 var(--s-5); padding: 0; border: 0; }
+.trip__opt { position: relative; display: block; }
+/* the radio itself is the toggle's face (transparent, over the label), so the focus ring shows on it */
+.trip__opt input { appearance: none; position: absolute; inset: 0; margin: 0; border-radius: var(--r-sm); background: transparent; cursor: pointer; }
+.trip__opt span { display: grid; place-items: center; height: 44px; padding-inline: var(--s-2); border: 1px solid var(--line-strong, var(--line)); border-radius: var(--r-sm);
+                  font: 500 var(--t-small)/1.2 var(--font-text); text-align: center; transition: background-color var(--dur, 160ms) var(--ease, ease), color var(--dur, 160ms) var(--ease, ease); }
+.trip__opt input:checked + span { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+@media (hover: hover) and (pointer: fine) { .trip__opt:hover input:not(:checked) + span { background: var(--surface); } }
+.quote__form .form { gap: var(--s-4) var(--s-5); }
+.quote__card { display: grid; gap: var(--s-4); align-content: start; padding: var(--s-6); border-radius: var(--r-lg); background: var(--surface); }
+.quote__head { display: flex; align-items: end; justify-content: space-between; gap: var(--s-4); }
+.quote__cur select { width: auto; min-width: 104px; }
+.quote__bus { font-weight: 500; }
+.quote__card .rows > li { padding-block: var(--s-3); }
+.quote__total { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-4); font-weight: 500; }
+.quote__total .t-stat { font-variant-numeric: tabular-nums; }
+/* a tablet keeps the fields and the price side by side (one screen); the fields' column takes the toggles 2 x 2 */
+@media (min-width: 640px) and (max-width: 1023px) { .quote > .quote__form { grid-column: 1 / span 6; } .quote > .quote__card { grid-column: 7 / span 6; } .trip { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: var(--s-6); } .quote__form .form { row-gap: var(--s-6); } }
+@media (max-width: 639px) { .quote > .quote__form, .quote > .quote__card { grid-column: 1 / -1; } }
+/* a phone keeps short fields in pairs (date and time, people and bags) */
+@media (max-width: 639px) { .quote__form .form { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-4) var(--s-3); } .quote__form .field:has(#q-pickup, #q-dropoff) { grid-column: 1 / -1; } }
+
+/* included: four short items, then the coach across the wrap */
+.included__item { display: grid; gap: var(--s-2); align-content: start; }
+.included__photo { margin-top: var(--s-7); aspect-ratio: 1280 / 400; border-radius: var(--r-lg); overflow: hidden; }
+.included__photo > img { object-position: 50% 62%; }
+@media (max-width: 1023px) { .included__list > .span-3 { grid-column: span 6; } .included__photo { aspect-ratio: 16 / 9; } }
+@media (max-width: 639px) { .included__list > .span-3 { grid-column: 1 / -1; } .included__photo { aspect-ratio: 4 / 5; } }
+
+/* trips: the arrival hall beside the list, at the photograph's own 16:9 */
+.trips__photo { aspect-ratio: 16 / 9; border-radius: var(--r-lg); overflow: hidden; }
+/* a tablet keeps the split side by side (one screen), the photograph portrait beside the list */
+@media (min-width: 640px) and (max-width: 1023px) { #trips .grid > .span-5 { grid-column: 1 / span 6; } #trips .grid > .trips__photo { grid-column: 7 / span 6; aspect-ratio: 4 / 5; } }
+@media (max-width: 639px) { #trips .grid > .span-5, #trips .grid > .trips__photo { grid-column: 1 / -1; } .trips__photo { aspect-ratio: 3 / 4; } }
+
+/* a phone: the price card and the trip rows run tighter so each half fits its screen; a row's line takes the full width */
+@media (max-width: 639px) {
+  .quote__card { padding: var(--s-5); gap: var(--s-3); }
+  .quote__card .rows > li { padding-block: var(--s-2); }
+  #trips .rows > li > p { grid-column: 1 / -1; }
+  #trips .rows > li { padding-block: var(--s-3); }
+  #trips .rows > li:first-child { padding-top: 0; }
+  .trips__more { margin-top: var(--s-3); }
+}
+
+/* the quote and trips splits on a phone: two screens, each half on its own screen, as system.css's .g2m
+   does for a .wrap of two groups (here the split's grid steps aside so its two columns are the groups) */
+@media (max-width: 639px) {
+  #quote > .wrap, #trips > .wrap { display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); row-gap: calc(var(--padt) + var(--padb) + var(--bar)); align-items: start; }
+  #quote > .wrap > .grid, #trips > .wrap > .grid { display: contents; }
+}
+
+/* questions: the luggage hold under the heading */
+.questions__photo { margin-top: var(--s-7); aspect-ratio: 4 / 3; border-radius: var(--r-lg); overflow: hidden; }
+@media (max-width: 639px) { .questions__photo { aspect-ratio: 4 / 5; } }
+/* a tablet holds the questions on one screen without it (the FAQ may stand without a picture, sections.md section 1) */
+@media (min-width: 640px) and (max-width: 1023px) { .questions__photo { display: none; } }
+
+/* the close's big button: across the wrap below 1024 */
+@media (max-width: 1023px) { .closing__cta.close--type > .btn--xl:not(.btn--wide) { width: 100%; } }
+
+/* two screens on a tablet for the stacked splits (layout-v4.md section 2: the one page-CSS rule on a section) */
+
+/* fleet: picture-develops on the interior, the four sizes under it */
+.develop { margin: 0; border-radius: var(--r-lg); overflow: hidden; aspect-ratio: 1280 / 340; }
+.develop > img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 60%; }
+.fleet__list { list-style: none; margin: var(--s-7) 0 0; padding: 0; }
+.fleet__item { display: grid; gap: var(--s-1); align-content: start; padding-top: var(--s-4); border-top: 1px solid var(--line); }
+@media (max-width: 1023px) { .fleet__list > .span-3 { grid-column: span 6; } .develop { aspect-ratio: 16 / 9; } }
+@media (max-width: 639px) { .fleet__list > .span-3 { grid-column: span 6; } .develop { aspect-ratio: 2 / 1; } }
+
+/* the credits page */
+main.legal { padding-block: var(--s-9); }
+main.legal h1 { font: var(--display-weight) var(--t-h2)/1.1 var(--font-display); letter-spacing: var(--display-tracking); }
+
+/* questions: the split stacks below 1024 */
+@media (max-width: 1023px) { #questions .grid > .span-5, #questions .grid > .faq { grid-column: 1 / -1; } }

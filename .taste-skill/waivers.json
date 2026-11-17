@@ -1,0 +1,17 @@
+[
+  {
+    "check": "text-only",
+    "target": "section#quote",
+    "reason": "the quote calculator is the page's booking form; sections.md section 1 allows a booking form without a picture, once, never next to another picture-less section (its neighbours are the hero and #included)"
+  },
+  {
+    "check": "card-layout",
+    "target": "section#included",
+    "reason": "the three .frame--photo are single photographs in three different compositions (under a row of four items, beside a price list, under the FAQ heading), not a card layout; sections.md counts card layouts as 2x2, bento, three cards, split card and open tiles"
+  },
+  {
+    "check": "card-family",
+    "target": "div.quote__form.span-6",
+    "reason": "the .span-6 blocks it groups are not a card family: the quote fields column (it holds the section h2), the price card, the FAQ list and a photo frame; the only card on the page is the price card"
+  }
+]

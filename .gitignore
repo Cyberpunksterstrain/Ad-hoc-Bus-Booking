@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# tasteskill working files (Chrome profiles, screenshots, checker output); waivers.json and the history files stay
+/.taste-skill/chrome-*/
+/.taste-skill/shots/
+/.taste-skill/site/
+/.taste-skill/page.html
+/.taste-skill/consistency.txt
+/.taste-skill/gate/
+/.taste-skill/gate.json
+/.taste-skill/build.done.json

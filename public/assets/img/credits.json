@@ -1,0 +1,77 @@
+{
+ "note": "Credits for the photographs in this folder: photos.mjs credits prints the footer block for the ones the pages use.",
+ "photos": [
+  {
+   "file": "photo-f25446956-960.jpg",
+   "files": [
+    "photo-f25446956-500.jpg",
+    "photo-f25446956-960.jpg"
+   ],
+   "id": "f25446956",
+   "alt": "King Long coach in Singapore",
+   "by": "Ilya Plekhanov",
+   "licence": "CC BY-SA 3.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+   "page": "https://commons.wikimedia.org/wiki/File:King_Long_coach_in_Singapore.jpg",
+   "source": "Wikimedia Commons"
+  },
+  {
+   "file": "photo-f123303562-960.jpg",
+   "files": [
+    "photo-f123303562-500.jpg",
+    "photo-f123303562-960.jpg"
+   ],
+   "id": "f123303562",
+   "alt": "Changi Terminal 4 Arrival Hall",
+   "by": "Michael",
+   "licence": "Public domain",
+   "licenceUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+   "page": "https://commons.wikimedia.org/wiki/File:Changi_Terminal_4_Arrival_Hall.jpg",
+   "source": "Wikimedia Commons"
+  },
+  {
+   "file": "photo-f180683020-960.jpg",
+   "files": [
+    "photo-f180683020-500.jpg",
+    "photo-f180683020-960.jpg"
+   ],
+   "id": "f180683020",
+   "alt": "GO Transit MCI D45 CRT Interior",
+   "by": "Kyy0602",
+   "licence": "CC0",
+   "licenceUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "page": "https://commons.wikimedia.org/wiki/File:GO_Transit_MCI_D45_CRT_Interior.jpg",
+   "source": "Wikimedia Commons"
+  },
+  {
+   "file": "photo-f116687946.jpg",
+   "files": [
+    "photo-f116687946-500.jpg",
+    "photo-f116687946-960.jpg",
+    "photo-f116687946.jpg"
+   ],
+   "id": "f116687946",
+   "alt": "J00 520 Reisebusladeraum",
+   "by": "Falk2",
+   "licence": "CC BY-SA 4.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "page": "https://commons.wikimedia.org/wiki/File:J00_520_Reisebusladeraum.jpg",
+   "source": "Wikimedia Commons"
+  },
+  {
+   "file": "photo-f123065409.jpg",
+   "files": [
+    "photo-f123065409-500.jpg",
+    "photo-f123065409-960.jpg",
+    "photo-f123065409.jpg"
+   ],
+   "id": "f123065409",
+   "alt": "Coach bus at Ottawa museum",
+   "by": "shankar s.",
+   "licence": "CC BY 2.0",
+   "licenceUrl": "https://creativecommons.org/licenses/by/2.0",
+   "page": "https://commons.wikimedia.org/wiki/File:Coach_bus_at_Ottawa_museum.jpg",
+   "source": "Wikimedia Commons"
+  }
+ ]
+}
