@@ -13,15 +13,25 @@ Become the number one ad-hoc bus provider in Singapore. Public booking website, 
 - Vercel project: busbookings → busbookings-five.vercel.app (auto-deploys from GitHub; every branch gets a preview link)
 - Supabase project: busdomination (ID eezihgtheeaocogwxufp), region ap-southeast-1 Singapore, org "Ad Hoc Bus Booking", free plan
 - Supabase ↔ Vercel linked via integration, no prefix, keys marked Sensitive, Production + Preview only. For local dev, copy `NEXT_PUBLIC_SUPABASE_URL` and the publishable/anon key from Supabase into `.env.local`. Never commit `.env.local` or any key.
-- Design skills installed: Emil Kowalski skills (emil-design-eng, prototype, review-animations, break-ui, etc.) and Impeccable.
+- Design skills installed: Emil Kowalski skills (emil-design-eng, prototype, review-animations, break-ui, etc.), Impeccable, and the tasteskill plugin (`/taste-skill:design-taste-frontend`, used for the homepage redesign).
+- Git identity for this repo: `Cyberpunksterstrain <Cyberpunksterstrain@users.noreply.github.com>` (set per repo, keeps the owner's email private).
 
 ## What's built
 
 - Branch `feat/homepage-quote`, PR #1 (not merged). Preview: busbookings-git-feat-homepage-quote-ad-hoc-bus-booking.vercel.app
-- Next.js 16 (App Router, TypeScript), Tailwind 4, @supabase/ssr browser client helper (`src/lib/supabase/client.ts`). `vercel.json` sets framework nextjs.
-- Homepage + instant quote form (`src/components/QuoteForm.tsx`): airport pickup/drop-off, point to point, hourly charter; Changi terminal picker; quick-pick hotels/attractions; Singapore time; 24h minimum notice; flight number; luggage-based bus pick; midnight/Sunday/airport surcharges; 50% deposit; display currencies (charged in SGD)
-- All prices are PLACEHOLDERS in `src/lib/pricing.ts`. Places list in `src/lib/places.ts`.
-- Homepage feature cards mention flight tracking, live GPS and WhatsApp help: not built yet.
+- Next.js 16 (App Router, TypeScript), @supabase/ssr browser client helper (`src/lib/supabase/client.ts`). `vercel.json` sets framework nextjs. Tailwind 4 is still installed but no longer used (see Design system).
+- Homepage (`src/app/page.tsx`), redesigned 17 Nov 2026 with the tasteskill design kit: photo hero, instant quote, what's included, trips and prices, bus sizes, questions, closing call to action. `/credits` page lists the photo credits (`src/app/credits/page.tsx`).
+- Instant quote calculator (`src/components/QuoteForm.tsx`): airport pickup/drop-off, point to point, hourly charter; Changi terminal picker; quick-pick hotels/attractions; Singapore time; 24h minimum notice (shown as a warning under the time); optional flight number; luggage-based bus pick; midnight/Sunday/airport surcharges; 50% deposit; display currencies (charged in SGD). It opens on a sample airport pickup three days ahead at 10:00 so a price shows at once. It has no submit button: nothing is sent until the booking flow exists.
+- All prices are PLACEHOLDERS in `src/lib/pricing.ts`; every price on the page is read from there. Places list in `src/lib/places.ts`.
+- Unbuilt claims still on the homepage: flight tracking, GPS on every bus and WhatsApp help (the "Included with every booking" section, and the FAQ answer about late flights).
+
+## Design system (homepage)
+
+- Styling comes from the tasteskill kit, copied as plain files into `public/assets/` (`system.css`, `system.js`, `layout/`, `motion/`, `moments/`, `ui/`, ...). Do not edit the kit files; page-specific CSS goes in `public/assets/page.css`, which also holds the colour and font tokens.
+- The kit's scripts must run after React has hydrated the page, so they are added by `src/components/KitScripts.tsx` at the end of the page. Loading them from the layout or with `next/script` gets their changes wiped by hydration.
+- Look: the brand's own colours (green `#0f6e56` on cream `#f7f6f2`, ink `#1c1c1a`), Red Hat Display and Red Hat Text, soft corners, one green primary button style.
+- Photos in `public/assets/img/` are all free Wikimedia Commons stand-ins until the owner's own bus photos exist. When one is replaced, remove its line from `src/app/credits/page.tsx`. Shots wanted: own buses side-on, interior, luggage hold open, a driver meeting a group in Changi arrivals.
+- Design checks: the skill's checker and finish gate run against localhost:3000. The last gate ended OPEN with 1 finding (the gap under the hero on phones, from the kit's own padding). Accepted exceptions are in `.taste-skill/waivers.json`.
 
 ## Decisions so far
 
@@ -57,6 +67,6 @@ Become the number one ad-hoc bus provider in Singapore. Public booking website, 
 
 ## Next step
 
-Design pass on the homepage and quote form using the installed design skills, then the booking flow.
+The homepage design pass is done and pushed to PR #1. Next: the owner reviews the Vercel preview (desktop and phone), then the booking flow (build plan step 3).
 
 Tracker (owner ticks progress here): https://claude.ai/artifact/JHNM4anXuHg7mSUkCXYFvj
